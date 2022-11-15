@@ -1,4 +1,4 @@
-<p>
+<code>
 stackvids 
 
 USAGE:
@@ -10,4 +10,4 @@ OPTIONS:
     -h, --help                        Print help information
     -o, --output <output_folder>      folder output videos
     -q, --quantity <quantity>         how many stacks to make for each customer video
-</p>
+</code>

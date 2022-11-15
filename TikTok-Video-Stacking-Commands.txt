@@ -1,0 +1,9 @@
+## Resize to match, crop centers, stack 2 input videos cut to shortest duration - TOP AUDIO
+## Change inputs -- top_video.mp4, bottom_video.mp4 -- and output video name at end --  top_stacked_on_bottom.mp4  --- to what you wantt
+
+ffmpeg -i vid1.mp4 -i vid2.mp4 -filter_complex "[0:v]scale=1080:1920,crop=in_w:in_h/2:in_w:in_h/4[v0];[1:v]scale=1080:1920,crop=in_w:in_h/2:in_w:in_h/4[v1];[v0][v1]vstack" -c:v libx264  top_stacked_on_bottom.mp4
+
+ffmpeg -i vid1.mp4 -i vid1.mp4 -filter_complex "[0:v]scale=640:-1[v0];[v0][1:v]vstack=inputs=2" output.mp4
+
+ffmpeg -i vid1.mp4 -i vid2.mp4 -filter_complex "[0:v]scale=1080:1920,crop=in_w:in_h/2:in
+_w:in_h/4[v0];[1:v]scale=1080:1920,crop=in_w:in_h/2:in_w:in_h/4[v1];[v0][v1]vstack" -c:v libx264  top_stacked_on_bottom.mp4

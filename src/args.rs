@@ -12,5 +12,5 @@ pub struct Arguments {
     #[clap(short, long)]
     pub output_folder: String,
     #[clap(short, long)]
-    pub quantity: i32,
+    pub quantity: usize,
 }

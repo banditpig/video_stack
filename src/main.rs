@@ -1,14 +1,18 @@
 mod args;
+mod validation;
+
 use clap::Parser;
 
 use crate::args::Arguments;
+use crate::validation::check_args;
 use std::io;
 use std::process::Command;
 use std::thread::available_parallelism;
 use std::time::Instant;
 use threadpool::ThreadPool;
+
 #[derive(Debug, Clone)]
-struct VideoError {
+pub struct VideoError {
     reason: String,
 }
 impl From<io::Error> for VideoError {
@@ -60,15 +64,8 @@ fn in_parallel(cnt: usize) {
     let elapsed = now.elapsed();
     println!("Elapsed: {:.2?}", elapsed);
 }
-fn main() -> Result<(), VideoError> {
+fn main() {
     let a = Arguments::parse();
-    println!("{:?}", a);
-    // let args::Args {
-    //     client_folder,
-    //     dummies_folder,
-    //     output_folder,
-    //     quantity,
-    // } = args;
-    //println!("{:?}", &args);
-    Ok(())
+    let res = check_args(&a);
+    println!("{:?}", res);
 }

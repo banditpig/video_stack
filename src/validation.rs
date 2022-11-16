@@ -6,7 +6,6 @@ use crate::VideoError;
 use std::fs;
 use std::path::Path;
 fn folder_exists(folder: &str) -> Result<(), VideoError> {
-    //println!("Check {:?}", Path::new(folder).try_exists());
     match Path::new(folder).exists() {
         true => Ok(()),
         false => Err(VideoError {
@@ -14,7 +13,7 @@ fn folder_exists(folder: &str) -> Result<(), VideoError> {
         }),
     }
 }
-// ;
+
 fn count_contained_files(folder: &str) -> Result<usize, VideoError> {
     folder_exists(folder)?;
     Ok(fs::read_dir(folder).unwrap().count())

@@ -1,13 +1,14 @@
 <pre>
-stackvids 
+Utility to vertically stack two video files using ffmpeg
 
-USAGE:
-    video_stack --clients <client_folder> --dummies <dummies_folder> --output <output_folder> --quantity <quantity>
+Usage: video_stack --client-folder <CLIENT_FOLDER> --dummies-folder <DUMMIES_FOLDER> --output-folder <OUTPUT_FOLDER> --quantity <QUANTITY>
 
-OPTIONS:
-    -c, --clients <client_folder>  folder of client videos
-    -d, --dummies <dummies_folder>  folder of dummy videos
-    -h, --help      Print help information 
-    -o, --output <output_folder>   folder output videos
-    -q, --quantity <quantity> how many stacks to make for each customer video
+Options:
+  -c, --client-folder <CLIENT_FOLDER>    
+  -d, --dummies-folder <DUMMIES_FOLDER>  
+  -o, --output-folder <OUTPUT_FOLDER>    
+  -q, --quantity <QUANTITY>              
+  -h, --help                             Print help information
+  -V, --version                          Print version information
+
 </pre>

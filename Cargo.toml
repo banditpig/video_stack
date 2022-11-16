@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 
 threadpool = "1.8.1"
-clap = "3.2.20"
+clap = { version = "4.0.25", features = ["derive"] }

@@ -25,6 +25,7 @@ fn count_contained_files(folder: &str) -> Result<usize, VideoError> {
 pub fn check_args(args: &Arguments) -> Result<(), VideoError> {
     folder_exists(&args.client_folder)?;
     folder_exists(&args.dummies_folder)?;
+    //maybe this does not need to exist and can be created?
     folder_exists(&args.output_folder)?;
 
     let file_count = count_contained_files(&args.dummies_folder)?;

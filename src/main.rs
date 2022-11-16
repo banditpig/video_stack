@@ -32,7 +32,7 @@ impl From<io::Error> for VideoError {
 
 fn files_in_folder(folder: &str) -> io::Result<Vec<PathBuf>> {
     let mut files = vec![];
-
+    //
     for path in fs::read_dir(folder)? {
         let path = path?.path();
         files.push(path.to_owned());

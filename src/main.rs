@@ -2,6 +2,7 @@ mod args;
 mod validation;
 
 use clap::Parser;
+use std::fmt::{Display, Formatter};
 
 use crate::args::Arguments;
 use crate::validation::check_args;
@@ -13,7 +14,13 @@ use threadpool::ThreadPool;
 
 #[derive(Debug, Clone)]
 pub struct VideoError {
-    reason: String,
+    pub reason: String,
+}
+
+impl Display for VideoError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.reason)
+    }
 }
 impl From<io::Error> for VideoError {
     fn from(e: io::Error) -> VideoError {
@@ -67,5 +74,10 @@ fn in_parallel(cnt: usize) {
 fn main() {
     let a = Arguments::parse();
     let res = check_args(&a);
-    println!("{:?}", res);
+    match res {
+        Ok(_) => println!("Finished."),
+        Err(e) => {
+            println!("{}", e);
+        }
+    }
 }

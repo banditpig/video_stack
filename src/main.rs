@@ -1,4 +1,6 @@
+#![allow(unused)]
 mod args;
+
 mod validation;
 
 use crate::args::Arguments;
@@ -12,21 +14,45 @@ use std::time::Instant;
 use std::{fs, io};
 use threadpool::ThreadPool;
 
+fn get_commands(fname: &str) -> Result<Vec<Vec<String>>, VideoError> {
+    let mut rdr = csv::ReaderBuilder::new()
+        .delimiter(b' ')
+        .has_headers(false)
+        .from_path(fname)?;
+
+    let mut all_args: Vec<Vec<String>> = vec![];
+    for result in rdr.records() {
+        let mut args = vec![];
+        let record = result?;
+        for r in record.iter() {
+            args.push(r.to_string())
+        }
+        all_args.push(args)
+    }
+    Ok(all_args)
+}
+
 #[derive(Debug, Clone)]
 pub struct VideoError {
     pub reason: String,
-}
-
-impl Display for VideoError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.reason)
-    }
 }
 impl From<io::Error> for VideoError {
     fn from(e: io::Error) -> VideoError {
         VideoError {
             reason: e.to_string(),
         }
+    }
+}
+impl From<csv::Error> for VideoError {
+    fn from(e: csv::Error) -> VideoError {
+        VideoError {
+            reason: e.to_string(),
+        }
+    }
+}
+impl Display for VideoError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.reason)
     }
 }
 
@@ -60,7 +86,6 @@ fn process_videos(args: &Arguments) -> Result<(), VideoError> {
                         "-hide_banner",
                         "-loglevel", "error",
                         "-y",
-                        //"-threads", "2",
                         "-i", &vid1,
                         "-i", &vid2,
                         "-filter_complex", "[0:v]scale=1080:1920,crop=in_w:in_h/2:in _w:in_h/4[v0];[1:v]scale=1080:1920,crop=in_w:in_h/2:in_w:in_h/4[v1];[v0][v1]vstack",

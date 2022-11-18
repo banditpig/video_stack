@@ -57,6 +57,11 @@ pub fn all_commands(cmds_file_name: &str) -> Result<Vec<VideoCommand>, VideoErro
         //make a command and set its arguments.
         //Command name is first and is usually ffmpeg
         let cmd_name = args.remove(0);
+        if cmd_name != "ffmpeg" {
+            return Err(VideoError {
+                reason: format!("Command must start with 'ffmpeg', not {}.", cmd_name),
+            });
+        }
         let mut cmd = Command::new(&cmd_name);
         //
         // for arg in args {
@@ -103,13 +108,20 @@ mod tests {
     use std::path::Path;
 
     #[test]
-    fn load_commands() {
+    fn load_commands_all_good() {
         let file_name = "./testfiles/good_cmdfile.txt";
         let cmds = all_commands(file_name).unwrap();
         assert_eq!(cmds.len(), 3);
         assert_eq!(cmds[0].cmd_name, "ffmpeg");
         assert_eq!(cmds[1].cmd_name, "ffmpeg");
-        assert_eq!(cmds[2].cmd_name, "ffprobe");
+        assert_eq!(cmds[2].cmd_name, "ffmpeg");
+    }
+    #[test]
+    fn load_commands_one_bad() {
+        //this file has command that starts with 'ffprobe'
+        let file_name = "./testfiles/bad_cmdfile.txt";
+        let cmds = all_commands(file_name);
+        assert!(cmds.is_err());
     }
     #[test]
     fn load_commands_empty_file() {

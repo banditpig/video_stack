@@ -107,11 +107,11 @@ mod tests {
 
     #[test]
     fn dummy_files() {
-        let res = enough_dummy_files(2, "./testfiles");
+        let res = enough_dummy_files(3, "./testfiles");
 
         assert!(res.is_ok());
 
-        let res = enough_dummy_files(3, "./testfiles");
+        let res = enough_dummy_files(4, "./testfiles");
         assert!(res.is_err());
     }
 }

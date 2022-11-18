@@ -1,3 +1,3 @@
 ffmpeg -y -threads 8 -i vid1.mp4 -i vid2.mp4 -filter_complex "[0:v]scale=1080:1920,crop=in_w:in_h/2:in _w:in_h/4[v0];[1:v]scale=1080:1920,crop=in_w:in_h/2:in_w:in_h/4[v1];[v0][v1]vstack" -c:v libx264 output1.mp4
 ffmpeg -y -threads 8 -i vid1.mp4 -i vid2.mp4 -filter_complex "[0:v]scale=1080:1920,crop=in_w:in_h/2:in _w:in_h/4[v0];[1:v]scale=1080:1920,crop=in_w:in_h/2:in_w:in_h/4[v1];[v0][v1]vstack" -c:v libx264 output2.mp4
-ffprobe -v error -select_streams v:0 -show_entries stream=width,height,sample_aspect_ratio,display_aspect_ratio -of json=c=1 outputtxt.txt
+ffmpeg -v error -select_streams v:0 -show_entries stream=width,height,sample_aspect_ratio,display_aspect_ratio -of json=c=1 outputtxt.txt

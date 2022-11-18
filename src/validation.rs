@@ -21,7 +21,7 @@ pub fn check_args(args: &Arguments) -> Result<(), VideoError> {
     enough_dummy_files(args.quantity, &args.dummies_folder.as_str())?;
     Ok(())
 }
-fn folder_exists(folder: &str) -> Result<(), VideoError> {
+pub fn folder_exists(folder: &str) -> Result<(), VideoError> {
     match Path::new(folder).exists() {
         true => Ok(()),
         false => Err(VideoError {
@@ -108,9 +108,7 @@ mod tests {
     #[test]
     fn dummy_files() {
         let res = enough_dummy_files(3, "./testfiles");
-
         assert!(res.is_ok());
-
         let res = enough_dummy_files(4, "./testfiles");
         assert!(res.is_err());
     }

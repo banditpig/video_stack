@@ -7,7 +7,7 @@ mod command_builder;
 mod validation;
 
 use crate::args::Arguments;
-use crate::validation::check_args;
+use crate::validation::{check_args, folder_exists};
 use clap::Parser;
 use std::fmt::{Display, Formatter};
 use std::path::PathBuf;
@@ -105,13 +105,21 @@ fn process_videos(args: &Arguments) -> Result<(), VideoError> {
     Ok(())
 }
 
-fn main() {
+fn main() -> Result<(), VideoError> {
     let args = Arguments::parse();
     let res = check_args(&args);
+    let out_folder = folder_exists(&args.output_folder);
+    match out_folder {
+        Ok(_) => {}
+        Err(_) => {
+            fs::create_dir(&args.output_folder)?;
+        }
+    }
     match res {
         Ok(_) => process_videos(&args).unwrap(),
         Err(e) => {
             println!("{}", e);
         }
     }
+    Ok(())
 }

@@ -2,11 +2,11 @@
 //client and dummy are actually video files?
 
 use crate::args::Arguments;
-use crate::{get_commands, VideoError};
+use crate::VideoError;
 use clap::{arg, command};
 use std::fs;
+use std::fs::read_to_string;
 use std::path::Path;
-
 //Make sure the three folders exist.
 //make sure that the number of video files
 //in the dummies_folder is >= quantity
@@ -59,10 +59,11 @@ fn enough_dummy_files(quantity: usize, dummies_folder: &String) -> Result<(), Vi
 }
 
 fn command_index_ok(ix: usize) -> Result<(), VideoError> {
-    let cmds_count = get_commands("ffmpeg_commands.txt")?.len();
-    if ix >= cmds_count {
+    let text = read_to_string("ffmpeg_commands.txt")?;
+    let line_count = text.split("\n").count();
+    if ix >= line_count {
         Err(VideoError {
-            reason: format!("Not enough dummy files {} does not exist", cmds_count),
+            reason: format!("Not enough dummy files {} does not exist", line_count),
         })
     } else {
         Ok(())

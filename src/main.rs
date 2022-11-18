@@ -1,6 +1,9 @@
 #![allow(unused)]
+#[macro_use]
+// extern crate lazy_static;
 mod args;
 
+mod command_builder;
 mod validation;
 
 use crate::args::Arguments;
@@ -14,23 +17,9 @@ use std::time::Instant;
 use std::{fs, io};
 use threadpool::ThreadPool;
 
-fn get_commands(fname: &str) -> Result<Vec<Vec<String>>, VideoError> {
-    let mut rdr = csv::ReaderBuilder::new()
-        .delimiter(b' ')
-        .has_headers(false)
-        .from_path(fname)?;
+use std::collections::HashMap;
 
-    let mut all_args: Vec<Vec<String>> = vec![];
-    for result in rdr.records() {
-        let mut args = vec![];
-        let record = result?;
-        for r in record.iter() {
-            args.push(r.to_string())
-        }
-        all_args.push(args)
-    }
-    Ok(all_args)
-}
+const COMMANDS_FILE: &str = "ffmpeg_commands.txt";
 
 #[derive(Debug, Clone)]
 pub struct VideoError {
@@ -65,9 +54,11 @@ fn files_in_folder(folder: &str) -> io::Result<Vec<PathBuf>> {
     }
     Ok(files)
 }
+
 fn process_videos(args: &Arguments) -> Result<(), VideoError> {
     let cores = available_parallelism().unwrap().get();
     let pool = ThreadPool::with_name("worker".into(), cores);
+    //let cmd = &get_commands(COMMANDS_FILE)?[args.command_index];
 
     let client_vids = files_in_folder(&args.client_folder)?; //.unwrap();
     let dummy_vids = files_in_folder(&args.dummies_folder)?;
@@ -81,8 +72,10 @@ fn process_videos(args: &Arguments) -> Result<(), VideoError> {
             total += 1;
             pool.execute(move || {
                 println!("Working on  {outname}");
+
                 let output = Command::new("ffmpeg")
                     .args([
+
                         "-hide_banner",
                         "-loglevel", "error",
                         "-y",
@@ -90,7 +83,8 @@ fn process_videos(args: &Arguments) -> Result<(), VideoError> {
                         "-i", &vid2,
                         "-filter_complex", "[0:v]scale=1080:1920,crop=in_w:in_h/2:in _w:in_h/4[v0];[1:v]scale=1080:1920,crop=in_w:in_h/2:in_w:in_h/4[v1];[v0][v1]vstack",
                         "-c:v", "libx264",
-                        &outname
+                        &outname,
+
                     ])
                     .status();
 

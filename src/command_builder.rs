@@ -1,7 +1,7 @@
 use crate::VideoError;
 use std::process::Command;
 
-pub const COMMANDS_FILE: &str = "ffmpeg_commands.txt";
+//pub const COMMANDS_FILE: &str = "ffmpeg_commands.txt";
 #[derive(Debug)]
 pub struct VideoCommand {
     cmd: Command,

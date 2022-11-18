@@ -19,8 +19,6 @@ use threadpool::ThreadPool;
 
 use std::collections::HashMap;
 
-const COMMANDS_FILE: &str = "ffmpeg_commands.txt";
-
 #[derive(Debug, Clone)]
 pub struct VideoError {
     pub reason: String,

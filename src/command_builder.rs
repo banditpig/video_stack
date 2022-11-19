@@ -8,8 +8,6 @@ pub struct VideoCommand {
     pub(crate) client_video: String,
     pub(crate) dummy_video: String,
     pub(crate) output_video: String,
-
-    pub(crate) cmd_name: String, // might be useful even tho it's encoded into the Command.
 }
 
 pub fn update_args_with_substitutions(

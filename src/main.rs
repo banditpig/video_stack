@@ -56,15 +56,14 @@ fn files_in_folder(folder: &str) -> io::Result<Vec<PathBuf>> {
     }
     Ok(files)
 }
-
-fn process_videos(args: &Arguments, vid_cmd_args: &Vec<String>) -> Result<(), VideoError> {
-    let cores = available_parallelism().unwrap().get();
-    let pool = ThreadPool::with_name("worker".into(), cores);
-
+fn create_video_commands(
+    args: &Arguments,
+    vid_cmd_args: &Vec<String>,
+) -> Result<Vec<VideoCommand>, VideoError> {
     let client_vids = files_in_folder(&args.client_folder)?; //.unwrap();
     let dummy_vids = files_in_folder(&args.dummies_folder)?;
     let mut total = 0;
-    let now = Instant::now();
+
     let mut all_commands = vec![];
     for cvid in client_vids {
         for ix in 0..args.quantity {
@@ -85,13 +84,19 @@ fn process_videos(args: &Arguments, vid_cmd_args: &Vec<String>) -> Result<(), Vi
                 client_video: vid1,
                 dummy_video: vid2,
                 output_video: outname,
-                cmd_name: "".to_string(),
             };
             all_commands.push(video_cmd);
             total += 1;
         }
     }
+    Ok(all_commands)
+}
+fn process_videos(args: &Arguments, vid_cmd_args: &Vec<String>) -> Result<(), VideoError> {
+    let cores = available_parallelism().unwrap().get();
+    let pool = ThreadPool::with_name("worker".into(), cores);
+    let now = Instant::now();
 
+    let all_commands = create_video_commands(args, vid_cmd_args)?;
     for mut video_cmd in all_commands {
         pool.execute(move || {
             println!("Running command {:?}", video_cmd);

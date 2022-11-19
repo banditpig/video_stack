@@ -76,9 +76,6 @@ fn command_index_ok(ix: usize, cmd_file: &str) -> Result<(), VideoError> {
 mod tests {
     use super::*;
 
-    use std::assert_eq;
-    use std::path::Path;
-
     #[test]
     fn folder_exists_test() {
         //happy path

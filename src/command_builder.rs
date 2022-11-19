@@ -62,37 +62,42 @@ pub fn get_cmd_args(cmds_file_name: &str) -> Result<Vec<Vec<String>>, VideoError
         }
         all_args.push(args)
     }
-    Ok(all_args)
+    match all_args.len() {
+        0 => Err(VideoError {
+            reason: "Commands file is empty".to_string(),
+        }),
+        _ => Ok(all_args),
+    }
 }
 //--------------------------------------------------------------------------------------------
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    use crate::args::Arguments;
     use std::assert_eq;
-    use std::path::Path;
 
     #[test]
-    fn load_commands_all_good() {}
+    fn get_cmd_args_all_good() {
+        let file_name = "./testfiles/good_cmdfile.txt";
+        let all_args = get_cmd_args(file_name);
+        assert!(all_args.is_ok());
+        let args = all_args.unwrap();
+        assert_eq!(3, args.len());
+        assert_eq!("ffmpeg", args[0][0]);
+        assert_eq!("ffmpeg", args[1][0]);
+        assert_eq!("ffmpeg", args[2][0]);
+    }
+
     #[test]
-    fn load_commands_one_bad() {
-        // //this file has command that starts with 'ffprobe'
-        // let file_name = "./testfiles/bad_cmdfile.txt";
-        // let cmds = all_commands(file_name);
-        // assert!(cmds.is_err());
+    fn get_cmd_args_empty_file() {
+        let file_name = "./testfiles/empty_cmdfile.txt";
+        let all_args = get_cmd_args(file_name);
+        assert!(all_args.is_err());
     }
     #[test]
-    fn load_commands_empty_file() {
-        // let file_name = "./testfiles/empty_cmdfile.txt";
-        // let cmds = all_commands(file_name).unwrap();
-        // assert_eq!(cmds.len(), 0);
-    }
-    #[test]
-    fn load_commands_no_file() {
-        // let file_name = "./testfiles/nosuchfile.txt";
-        // let cmds = all_commands(file_name);
-        // assert!(cmds.is_err(), "The file should not exist");
+    fn get_cmd_args_no_file() {
+        let file_name = "./testfiles/nosuchfile.txt";
+        let all_args = get_cmd_args(file_name);
+        assert!(all_args.is_err());
     }
     #[test]
     fn update_arguments() {

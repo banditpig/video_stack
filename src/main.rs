@@ -1,6 +1,3 @@
-#![allow(unused)]
-#[macro_use]
-// extern crate lazy_static;
 mod args;
 
 mod command_builder;
@@ -20,8 +17,6 @@ use threadpool::ThreadPool;
 use crate::command_builder::{
     add_arguments_to_command, get_cmd_args, update_args_with_substitutions, VideoCommand,
 };
-use std::collections::HashMap;
-use std::ops::Index;
 
 #[derive(Debug, Clone)]
 pub struct VideoError {
@@ -78,7 +73,7 @@ fn create_video_commands(
             );
 
             let cmd_name = arg_vec.remove(0); //eg ffmpeg
-            let mut cmd = add_arguments_to_command(Command::new(cmd_name), &arg_vec);
+            let cmd = add_arguments_to_command(Command::new(cmd_name), &arg_vec);
             let video_cmd = VideoCommand {
                 cmd,
                 client_video: vid1,
@@ -137,7 +132,7 @@ fn main() -> Result<(), VideoError> {
 
     let mut all_cmd_args = get_cmd_args(COMMANDS_FILE)?;
 
-    let mut vid_cmd_args = all_cmd_args.get_mut(args.index_of_command).unwrap();
+    let vid_cmd_args = all_cmd_args.get_mut(args.index_of_command).unwrap();
 
     match res {
         Ok(_) => process_videos(&args, vid_cmd_args).unwrap(),

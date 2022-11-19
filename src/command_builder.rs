@@ -1,6 +1,5 @@
 use crate::VideoError;
 use std::fmt::{Display, Formatter};
-use std::ops::Index;
 use std::process::Command;
 
 #[derive(Debug)]
@@ -29,19 +28,19 @@ pub fn update_args_with_substitutions(
 
     let mut args_clone = input_vec.clone();
     let ix = args_clone.iter().position(|s| s == "TOP_VID").unwrap(); //Should handle this error!
-    let value = std::mem::replace(&mut args_clone[ix], tv.to_string());
+    let _ = std::mem::replace(&mut args_clone[ix], tv.to_string());
 
     let ix = args_clone.iter().position(|s| s == "BOTTOM_VID").unwrap();
-    let value = std::mem::replace(&mut args_clone[ix], bv.to_string());
+    let _ = std::mem::replace(&mut args_clone[ix], bv.to_string());
 
     let ix = args_clone.iter().position(|s| s == "OUTVID").unwrap();
-    let value = std::mem::replace(&mut args_clone[ix], ov.to_string());
+    let _ = std::mem::replace(&mut args_clone[ix], ov.to_string());
 
     args_clone //Is this OK??? or should I not return a ref and just clone vec?
 }
 pub fn add_arguments_to_command(mut cmd: Command, args: &Vec<String>) -> Command {
     for arg in args {
-        let cmd = cmd.arg(arg);
+        cmd.arg(arg);
     }
     cmd
 }

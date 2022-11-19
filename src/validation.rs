@@ -3,7 +3,6 @@
 
 use crate::args::Arguments;
 use crate::VideoError;
-use clap::{arg, command};
 use std::fs;
 use std::fs::read_to_string;
 use std::path::Path;

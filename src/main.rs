@@ -17,7 +17,9 @@ use std::time::Instant;
 use std::{fs, io};
 use threadpool::ThreadPool;
 
-use crate::command_builder::{all_commands, VideoCommand};
+use crate::command_builder::{
+    add_arguments_to_command, get_cmd_args, update_args_with_substitutions, VideoCommand,
+};
 use std::collections::HashMap;
 use std::ops::Index;
 
@@ -55,10 +57,7 @@ fn files_in_folder(folder: &str) -> io::Result<Vec<PathBuf>> {
     Ok(files)
 }
 
-fn process_videos(
-    args: &Arguments,
-    mut vid_cmd: &mut command_builder::VideoCommand,
-) -> Result<(), VideoError> {
+fn process_videos(args: &Arguments, vid_cmd_args: &Vec<String>) -> Result<(), VideoError> {
     let cores = available_parallelism().unwrap().get();
     let pool = ThreadPool::with_name("worker".into(), cores);
 
@@ -72,28 +71,37 @@ fn process_videos(
             let vid1 = format!("{}", cvid.display());
             let vid2 = format!("{}", dummy_vids[ix].display());
             let outname = format!("stacked_video{}.mp4", total);
-            let arg_vec = vid_cmd.update_args_with_substitutions(
+            let mut arg_vec = update_args_with_substitutions(
+                vid_cmd_args,
                 vid1.as_str(),
                 vid2.as_str(),
                 outname.as_str(),
             );
-            let cmd = Command::new("ffmpeg");
-            let mut output = vid_cmd.add_arguments_to_command(cmd, &arg_vec);
-            all_commands.push(output);
+
+            let cmd_name = arg_vec.remove(0); //eg ffmpeg
+            let mut cmd = add_arguments_to_command(Command::new(cmd_name), &arg_vec);
+            let video_cmd = VideoCommand {
+                cmd,
+                client_video: vid1,
+                dummy_video: vid2,
+                output_video: outname,
+                cmd_name: "".to_string(),
+            };
+            all_commands.push(video_cmd);
             total += 1;
         }
     }
 
-    for mut cmd in all_commands {
+    for mut video_cmd in all_commands {
         pool.execute(move || {
-            let output = cmd.status();
-
+            println!("Running command {:?}", video_cmd);
+            let output = video_cmd.cmd.status();
             match output {
                 Ok(status) => {
                     if status.success() {
-                        println!("Stacked video  created.");
+                        println!("Stacked video {} created.", video_cmd.output_video);
                     } else {
-                        println!("Failed to create ");
+                        println!("Failed to create {} ", video_cmd.output_video);
                     }
                 }
 
@@ -122,12 +130,12 @@ fn main() -> Result<(), VideoError> {
     }
     //now which cmd is being used
 
-    let mut all_cmds = all_commands(COMMANDS_FILE)?;
+    let mut all_cmd_args = get_cmd_args(COMMANDS_FILE)?;
 
-    let mut vid_cmd = all_cmds.get_mut(args.command_index).unwrap();
+    let mut vid_cmd_args = all_cmd_args.get_mut(args.command_index).unwrap();
 
     match res {
-        Ok(_) => process_videos(&args, vid_cmd).unwrap(),
+        Ok(_) => process_videos(&args, vid_cmd_args).unwrap(),
         Err(e) => {
             println!("{}", e);
         }

@@ -42,6 +42,11 @@ impl Display for VideoError {
     }
 }
 
+fn process_videos(args: &Arguments, vid_cmd_args: &Vec<String>) -> Result<(), VideoError> {
+    let all_commands = create_video_commands(args, vid_cmd_args)?;
+    run_all_commands(all_commands)
+}
+
 fn files_in_folder(folder: &str) -> io::Result<Vec<PathBuf>> {
     let mut files = vec![];
 
@@ -86,10 +91,6 @@ fn create_video_commands(
     }
     Ok(all_commands)
 }
-fn process_videos(args: &Arguments, vid_cmd_args: &Vec<String>) -> Result<(), VideoError> {
-    let all_commands = create_video_commands(args, vid_cmd_args)?;
-    run_all_commands(all_commands)
-}
 
 fn run_all_commands(all_commands: Vec<VideoCommand>) -> Result<(), VideoError> {
     let cores = available_parallelism().unwrap().get();
@@ -132,12 +133,9 @@ fn main() -> Result<(), VideoError> {
             fs::create_dir(&args.output_folder)?;
         }
     }
-    //now which cmd is being used
 
     let mut all_cmd_args = get_cmd_args(COMMANDS_FILE)?;
-
     let vid_cmd_args = all_cmd_args.get_mut(args.index_of_command).unwrap();
-
     match res {
         Ok(_) => process_videos(&args, vid_cmd_args).unwrap(),
         Err(e) => {

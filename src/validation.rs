@@ -17,7 +17,7 @@ pub fn check_args(args: &Arguments) -> Result<(), VideoError> {
     //maybe this does not need to exist and can be created?
     folder_exists(&args.output_folder)?;
     file_exist("ffmpeg_commands.txt")?;
-    command_index_ok(args.command_index, COMMANDS_FILE)?;
+    command_index_ok(args.index_of_command, COMMANDS_FILE)?;
     enough_dummy_files(args.quantity, &args.dummies_folder.as_str())?;
     Ok(())
 }

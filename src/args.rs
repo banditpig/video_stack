@@ -14,5 +14,5 @@ pub struct Arguments {
     #[clap(short, long)]
     pub quantity: usize,
     #[clap(short, long)]
-    pub command_index: usize,
+    pub index_of_command: usize,
 }

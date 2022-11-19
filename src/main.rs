@@ -99,7 +99,7 @@ fn process_videos(args: &Arguments, vid_cmd_args: &Vec<String>) -> Result<(), Vi
     let all_commands = create_video_commands(args, vid_cmd_args)?;
     for mut video_cmd in all_commands {
         pool.execute(move || {
-            println!("Running command {:?}", video_cmd);
+            println!("Running command... {}", video_cmd);
             let output = video_cmd.cmd.status();
             match output {
                 Ok(status) => {
@@ -119,7 +119,7 @@ fn process_videos(args: &Arguments, vid_cmd_args: &Vec<String>) -> Result<(), Vi
 
     pool.join();
     let elapsed = now.elapsed();
-    println!("Elapsed: {:.2?}", elapsed);
+    println!("Time taken: {:.2?}", elapsed);
     Ok(())
 }
 
@@ -137,7 +137,7 @@ fn main() -> Result<(), VideoError> {
 
     let mut all_cmd_args = get_cmd_args(COMMANDS_FILE)?;
 
-    let mut vid_cmd_args = all_cmd_args.get_mut(args.command_index).unwrap();
+    let mut vid_cmd_args = all_cmd_args.get_mut(args.index_of_command).unwrap();
 
     match res {
         Ok(_) => process_videos(&args, vid_cmd_args).unwrap(),

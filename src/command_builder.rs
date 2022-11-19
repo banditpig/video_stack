@@ -1,4 +1,5 @@
 use crate::VideoError;
+use std::fmt::{Display, Formatter};
 use std::ops::Index;
 use std::process::Command;
 
@@ -9,7 +10,15 @@ pub struct VideoCommand {
     pub(crate) dummy_video: String,
     pub(crate) output_video: String,
 }
-
+impl Display for VideoCommand {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Combining {} and  {} to create {}",
+            self.client_video, self.dummy_video, self.output_video
+        )
+    }
+}
 pub fn update_args_with_substitutions(
     input_vec: &Vec<String>,
     tv: &str,

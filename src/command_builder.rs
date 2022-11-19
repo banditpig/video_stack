@@ -2,7 +2,6 @@ use crate::VideoError;
 use std::ops::Index;
 use std::process::Command;
 
-//pub const COMMANDS_FILE: &str = "ffmpeg_commands.txt";
 #[derive(Debug)]
 pub struct VideoCommand {
     cmd: Command,
@@ -11,34 +10,28 @@ pub struct VideoCommand {
 }
 
 impl VideoCommand {
+    // pub fn new() -> Self {
+    //     Self {
+    //         cmd: edges: HashMap::new(),
+    //     }
+    // }
     ///Substitute values for TOP_VID, BOTTOM_VID, OUTVID in the
     /// After doing this the vector returned can then be used in add_arguments_to_command
     /// putting the command in a state where its fit to run.
-    pub fn update_args_with_substitutions(&mut self, tv: &str, bv: &str, ov: &str) -> &Vec<String> {
+    pub fn update_args_with_substitutions(&mut self, tv: &str, bv: &str, ov: &str) -> Vec<String> {
         //TOP_VID, BOTTOM_VID, OUTVID
 
-        let ix = self
-            .cmd_args_vec
-            .iter()
-            .position(|s| s == "TOP_VID")
-            .unwrap(); //Should handle this error!
+        let mut args_clone = self.cmd_args_vec.clone();
+        let ix = args_clone.iter().position(|s| s == "TOP_VID").unwrap(); //Should handle this error!
+        let value = std::mem::replace(&mut args_clone[ix], tv.to_string());
 
-        let value = std::mem::replace(&mut self.cmd_args_vec[ix], tv.to_string());
-        let ix = self
-            .cmd_args_vec
-            .iter()
-            .position(|s| s == "BOTTOM_VID")
-            .unwrap();
-        let value = std::mem::replace(&mut self.cmd_args_vec[ix], bv.to_string());
+        let ix = args_clone.iter().position(|s| s == "BOTTOM_VID").unwrap();
+        let value = std::mem::replace(&mut args_clone[ix], bv.to_string());
 
-        let ix = self
-            .cmd_args_vec
-            .iter()
-            .position(|s| s == "OUTVID")
-            .unwrap();
-        let value = std::mem::replace(&mut self.cmd_args_vec[ix], ov.to_string());
+        let ix = args_clone.iter().position(|s| s == "OUTVID").unwrap();
+        let value = std::mem::replace(&mut args_clone[ix], ov.to_string());
 
-        &self.cmd_args_vec //Is this OK??? or should I not return a ref and just clone vec?
+        args_clone //Is this OK??? or should I not return a ref and just clone vec?
     }
     pub fn add_arguments_to_command(&mut self, mut cmd: Command, args: &Vec<String>) -> Command {
         for arg in args {

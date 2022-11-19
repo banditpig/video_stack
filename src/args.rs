@@ -13,7 +13,6 @@ pub struct Arguments {
     pub output_folder: String,
     #[clap(short, long)]
     pub quantity: usize,
-
     #[clap(short, long)]
     pub command_index: usize,
 }

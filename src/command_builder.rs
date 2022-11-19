@@ -8,6 +8,7 @@ pub struct VideoCommand {
     pub(crate) client_video: String,
     pub(crate) dummy_video: String,
     pub(crate) output_video: String,
+    pub(crate) ix: i32,
 }
 impl Display for VideoCommand {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {

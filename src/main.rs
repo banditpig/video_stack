@@ -87,14 +87,18 @@ fn create_video_commands(
     Ok(all_commands)
 }
 fn process_videos(args: &Arguments, vid_cmd_args: &Vec<String>) -> Result<(), VideoError> {
+    let all_commands = create_video_commands(args, vid_cmd_args)?;
+    run_all_commands(all_commands)
+}
+
+fn run_all_commands(all_commands: Vec<VideoCommand>) -> Result<(), VideoError> {
     let cores = available_parallelism().unwrap().get();
     let pool = ThreadPool::with_name("worker".into(), cores);
     let now = Instant::now();
-
-    let all_commands = create_video_commands(args, vid_cmd_args)?;
     for mut video_cmd in all_commands {
         pool.execute(move || {
             println!("Running command... {}", video_cmd);
+
             let output = video_cmd.cmd.status();
             match output {
                 Ok(status) => {
@@ -106,7 +110,7 @@ fn process_videos(args: &Arguments, vid_cmd_args: &Vec<String>) -> Result<(), Vi
                 }
 
                 Err(e) => {
-                    println!("Finishedwith error {:?}", e);
+                    println!("Finished with error {:?}", e);
                 }
             }
         });

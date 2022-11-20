@@ -59,7 +59,9 @@ pub fn get_cmd_args(cmds_file_name: &str) -> Result<Vec<Vec<String>>, VideoError
         let mut args = vec![];
         let record = result?;
         for r in record.iter() {
-            args.push(r.to_string())
+            if r != "" {
+                args.push(r.to_string())
+            }
         }
         all_args.push(args)
     }

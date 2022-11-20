@@ -16,6 +16,7 @@ use rayon::prelude::*;
 use std::ffi::OsStr;
 use std::fmt::{Display, Formatter};
 
+use rayon::max_num_threads;
 use std::path::PathBuf;
 use std::process::Command;
 use std::sync::Mutex;
@@ -138,6 +139,14 @@ fn run_all_commands2(all_commands: Vec<VideoCommand>) -> Result<(), VideoError> 
         );
 
         let output = video_cmd.cmd.status();
+        // match output {
+        //     Ok(_) => {
+        //         progress.lock().unwrap().inc_and_draw(&bar, 100);
+        //     }
+        //     Err(e) => {
+        //         progress.lock().unwrap().cancel(bar);
+        //     }
+        // }
         progress.lock().unwrap().inc_and_draw(&bar, 100);
     });
     let elapsed = now.elapsed();

@@ -10,18 +10,17 @@ use crate::command_builder::{
 };
 use crate::validation::{check_args, folder_exists, COMMANDS_FILE};
 use clap::Parser;
+use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use lazy_static::lazy_static;
-use linya::{Bar, Progress};
+
 use rayon::prelude::*;
 use std::ffi::OsStr;
 use std::fmt::{Display, Formatter};
-
-use rayon::max_num_threads;
 use std::path::PathBuf;
 use std::process::Command;
-use std::sync::Mutex;
+
 use std::thread::available_parallelism;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 use std::{fs, io};
 use threadpool::ThreadPool;
 
@@ -123,34 +122,32 @@ fn create_video_commands(
     Ok(all_commands)
 }
 fn run_all_commands2(all_commands: Vec<VideoCommand>) -> Result<(), VideoError> {
-    let now = Instant::now();
-    let progress = Mutex::new(Progress::new());
     let total = all_commands.len();
-    println!("Creating {} stacked videos", total);
+    println!("Creating {} stacked videos.", total);
+    let now = Instant::now();
+
+    //let progress = Mutex::new(Progress::new());
+    let m = MultiProgress::new();
+    let sty = ProgressStyle::with_template(
+        "{spinner:.white} [{elapsed_precise}] {bar:40.cyan/green}  {msg}",
+    )
+    .unwrap()
+    .progress_chars("##-");
 
     all_commands.into_par_iter().for_each(|mut video_cmd| {
-        let bar: Bar = progress.lock().unwrap().bar(
-            5,
-            format!(
-                "{} Processing {}",
-                format!("{:03}", video_cmd.ix),
-                video_cmd.output_video
-            ),
-        );
+        let pb = m.add(ProgressBar::new(1));
+        pb.set_style(sty.clone());
 
-        let output = video_cmd.cmd.status();
-        // match output {
-        //     Ok(_) => {
-        //         progress.lock().unwrap().inc_and_draw(&bar, 100);
-        //     }
-        //     Err(e) => {
-        //         progress.lock().unwrap().cancel(bar);
-        //     }
-        // }
-        progress.lock().unwrap().inc_and_draw(&bar, 100);
+        let d = Duration::from_millis(500);
+        pb.enable_steady_tick(d);
+        pb.set_message(format!("Creating {}", video_cmd.output_video));
+        let _ = video_cmd.cmd.status();
+
+        pb.finish_with_message(format!("Video {} is complete.", video_cmd.output_video));
     });
     let elapsed = now.elapsed();
     println!("Time taken: {:.2?} and {} videos created.", elapsed, total);
+
     Ok(())
 }
 fn run_all_commands(all_commands: Vec<VideoCommand>) -> Result<(), VideoError> {

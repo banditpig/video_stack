@@ -14,15 +14,10 @@ use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use lazy_static::lazy_static;
 
 use rayon::prelude::*;
-use std::ffi::OsStr;
 use std::fmt::{Display, Formatter};
-use std::path::PathBuf;
 use std::process::Command;
-
-use std::thread::available_parallelism;
 use std::time::{Duration, Instant};
-use std::{fs, io};
-use threadpool::ThreadPool;
+use std::{error, fs, io};
 
 lazy_static! {
     pub static ref EXTENSIONS: Vec<&'static str> = {
@@ -41,7 +36,7 @@ lazy_static! {
 pub struct VideoError {
     pub reason: String,
 }
-impl From<io::Error> for VideoError {
+impl From<std::io::Error> for VideoError {
     fn from(e: io::Error) -> VideoError {
         VideoError {
             reason: e.to_string(),
@@ -55,15 +50,20 @@ impl From<csv::Error> for VideoError {
         }
     }
 }
+
 impl Display for VideoError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.reason)
+        write!(f, "{}", "aaa") //self.reason)
     }
 }
-
+impl error::Error for VideoError {
+    fn description(&self) -> &str {
+        &self.reason
+    }
+}
 fn process_videos(args: &Arguments, vid_cmd_args: &Vec<String>) -> Result<(), VideoError> {
     let all_commands = create_video_commands(args, vid_cmd_args)?;
-    run_all_commands2(all_commands)
+    run_all_commands(all_commands)
 }
 
 fn create_video_commands(
@@ -81,7 +81,7 @@ fn create_video_commands(
         for ix in 0..args.quantity {
             let vid1 = format!("{}", cvid.display());
             let vid2 = format!("{}", dummy_vids[ix].display());
-            let outname = format!("stacked_video{}.mp4", total);
+            let outname = format!("{}/stacked_video{}.mp4", args.output_folder, total);
             let mut arg_vec = update_args_with_substitutions(
                 vid_cmd_args,
                 vid1.as_str(),
@@ -104,18 +104,16 @@ fn create_video_commands(
     }
     Ok(all_commands)
 }
-fn run_all_commands2(all_commands: Vec<VideoCommand>) -> Result<(), VideoError> {
+fn run_all_commands(all_commands: Vec<VideoCommand>) -> Result<(), VideoError> {
     let total = all_commands.len();
     println!("Creating {} stacked videos.", total);
     let now = Instant::now();
 
-    //let progress = Mutex::new(Progress::new());
     let m = MultiProgress::new();
-    let sty = ProgressStyle::with_template(
-        "{spinner:.white} [{elapsed_precise}] {bar:40.cyan/green}  {msg}",
-    )
-    .unwrap()
-    .progress_chars("##-");
+    let sty =
+        ProgressStyle::with_template("{spinner:.white} [{elapsed}] {bar:40.cyan/green}  {msg}")
+            .unwrap()
+            .progress_chars("##-");
 
     all_commands.into_par_iter().for_each(|mut video_cmd| {
         let pb = m.add(ProgressBar::new(1));
@@ -133,40 +131,10 @@ fn run_all_commands2(all_commands: Vec<VideoCommand>) -> Result<(), VideoError> 
 
     Ok(())
 }
-fn run_all_commands(all_commands: Vec<VideoCommand>) -> Result<(), VideoError> {
-    let cores = available_parallelism().unwrap().get();
-    let pool = ThreadPool::with_name("worker".into(), cores);
-    let now = Instant::now();
-    for mut video_cmd in all_commands {
-        pool.execute(move || {
-            println!("Running command... {}", video_cmd);
 
-            let output = video_cmd.cmd.status();
-            match output {
-                Ok(status) => {
-                    if status.success() {
-                        println!("Stacked video {} created.", video_cmd.output_video);
-                    } else {
-                        println!("Failed to create {} ", video_cmd.output_video);
-                    }
-                }
-
-                Err(e) => {
-                    println!("Finished with error {:?}", e);
-                }
-            }
-        });
-    }
-
-    pool.join();
-    let elapsed = now.elapsed();
-    println!("Time taken: {:.2?}", elapsed);
-    Ok(())
-}
-
-fn main() -> Result<(), VideoError> {
+fn run() -> Result<(), VideoError> {
     let args: Arguments = Arguments::parse();
-    let res = check_args(&args);
+    let _ = check_args(&args)?;
     let out_folder = folder_exists(&args.output_folder);
     match out_folder {
         Ok(_) => {}
@@ -177,11 +145,24 @@ fn main() -> Result<(), VideoError> {
 
     let mut all_cmd_args = get_cmd_args(COMMANDS_FILE)?;
     let vid_cmd_args = all_cmd_args.get_mut(args.index_of_command).unwrap();
+    process_videos(&args, vid_cmd_args)?;
+
+    Ok(())
+}
+fn main() {
+    let res = run();
     match res {
-        Ok(_) => process_videos(&args, vid_cmd_args).unwrap(),
+        Ok(_) => {
+            std::process::exit(0);
+        }
         Err(e) => {
-            println!("{}", e);
+            println!("Problem creating videos:\n{}", e.reason);
+            std::process::exit(1);
         }
     }
-    Ok(())
+
+    // if let Err(err) = run() {
+    //     eprintln!("Error: {:?}", err);
+    //     std::process::exit(1);
+    // }
 }

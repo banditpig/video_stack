@@ -15,7 +15,7 @@ pub fn check_args(args: &Arguments) -> Result<(), VideoError> {
     folder_exists(&args.client_folder)?;
     folder_exists(&args.dummies_folder)?;
     //maybe this does not need to exist and can be created?
-    folder_exists(&args.output_folder)?;
+    //folder_exists(&args.output_folder)?;
     file_exist("ffmpeg_commands.txt")?;
     command_index_ok(args.index_of_command, COMMANDS_FILE)?;
     enough_dummy_files(args.quantity, &args.dummies_folder.as_str())?;
@@ -83,6 +83,7 @@ fn enough_dummy_files(quantity: usize, dummies_folder: &str) -> Result<(), Video
 fn command_index_ok(ix: usize, cmd_file: &str) -> Result<(), VideoError> {
     let text = read_to_string(cmd_file)?;
     let line_count = text.split("\n").count();
+
     if ix >= line_count {
         Err(VideoError {
             reason: format!(

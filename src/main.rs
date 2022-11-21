@@ -8,7 +8,7 @@ use crate::args::Arguments;
 use crate::command_builder::{
     add_arguments_to_command, get_cmd_args, update_args_with_substitutions, VideoCommand,
 };
-use crate::validation::{check_args, folder_exists, COMMANDS_FILE};
+use crate::validation::{check_args, folder_exists, video_files_in_folder, COMMANDS_FILE};
 use clap::Parser;
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use lazy_static::lazy_static;
@@ -25,7 +25,7 @@ use std::{fs, io};
 use threadpool::ThreadPool;
 
 lazy_static! {
-    static ref EXTENSIONS: Vec<&'static str> = {
+    pub static ref EXTENSIONS: Vec<&'static str> = {
         let mut m = Vec::new();
         m.push("avi");
         m.push("mkv");
@@ -66,23 +66,6 @@ fn process_videos(args: &Arguments, vid_cmd_args: &Vec<String>) -> Result<(), Vi
     run_all_commands2(all_commands)
 }
 
-fn video_files_in_folder(folder: &str) -> io::Result<Vec<PathBuf>> {
-    let mut files = vec![];
-
-    for path in fs::read_dir(folder)? {
-        let path = path?.path();
-        let name = path.extension().and_then(OsStr::to_str);
-        match name {
-            None => {}
-            Some(n) => {
-                if EXTENSIONS.contains(&n) {
-                    files.push(path.to_owned());
-                }
-            }
-        }
-    }
-    Ok(files)
-}
 fn create_video_commands(
     args: &Arguments,
     vid_cmd_args: &Vec<String>,

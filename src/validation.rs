@@ -2,10 +2,11 @@
 //client and dummy are actually video files?
 
 use crate::args::Arguments;
-use crate::VideoError;
-use std::fs;
+use crate::{VideoError, EXTENSIONS};
+use std::ffi::OsStr;
 use std::fs::read_to_string;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::{fs, io};
 pub const COMMANDS_FILE: &str = "ffmpeg_commands.txt";
 //Make sure the three folders exist.
 //make sure that the number of video files
@@ -28,10 +29,27 @@ pub fn folder_exists(folder: &str) -> Result<(), VideoError> {
         }),
     }
 }
+pub fn video_files_in_folder(folder: &str) -> io::Result<Vec<PathBuf>> {
+    let mut files = vec![];
 
-fn count_contained_files(folder: &str) -> Result<usize, VideoError> {
+    for path in fs::read_dir(folder)? {
+        let path = path?.path();
+        let name = path.extension().and_then(OsStr::to_str);
+        match name {
+            None => {}
+            Some(n) => {
+                if EXTENSIONS.contains(&n) {
+                    files.push(path.to_owned());
+                }
+            }
+        }
+    }
+    Ok(files)
+}
+fn count_contained_video_files(folder: &str) -> Result<usize, VideoError> {
     folder_exists(folder)?;
-    Ok(fs::read_dir(folder).unwrap().count())
+    let vf = video_files_in_folder(folder)?;
+    Ok(vf.len())
 }
 fn file_exist(fname: &str) -> Result<(), VideoError> {
     if std::path::Path::new(fname).exists() {
@@ -48,10 +66,14 @@ fn file_exist(fname: &str) -> Result<(), VideoError> {
 }
 
 fn enough_dummy_files(quantity: usize, dummies_folder: &str) -> Result<(), VideoError> {
-    let file_count = count_contained_files(dummies_folder)?;
-    if file_count < quantity {
+    let file_count = count_contained_video_files(dummies_folder)?;
+    if quantity > file_count {
         Err(VideoError {
-            reason: format!("Not enough dummy files {}  exist", file_count),
+            reason: format!(
+                "Not enough dummy files. There are {} dummy files.\n\
+            And {} stacked files have been asked for.",
+                file_count, quantity
+            ),
         })
     } else {
         Ok(())
@@ -103,9 +125,9 @@ mod tests {
 
     #[test]
     fn dummy_files() {
-        let res = enough_dummy_files(3, "./testfiles");
+        let res = enough_dummy_files(3, "./testfiles/dummyvids");
         assert!(res.is_ok());
-        let res = enough_dummy_files(4, "./testfiles");
+        let res = enough_dummy_files(4, "./testfiles/dummyvids");
         assert!(res.is_err());
     }
 }

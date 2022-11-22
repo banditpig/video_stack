@@ -114,17 +114,32 @@ fn run_all_commands(all_commands: Vec<VideoCommand>) -> Result<(), VideoError> {
         ProgressStyle::with_template("{spinner:.white} [{elapsed}] {bar:40.cyan/green}  {msg}")
             .unwrap()
             .progress_chars("##-");
+    let error_sty =
+        ProgressStyle::with_template("{spinner:.red} [{elapsed}] {bar:40.red/green}  {msg}")
+            .unwrap()
+            .progress_chars("***");
 
     all_commands.into_par_iter().for_each(|mut video_cmd| {
         let pb = m.add(ProgressBar::new(1));
         pb.set_style(sty.clone());
 
-        let d = Duration::from_millis(500);
+        let d = Duration::from_millis(50);
         pb.enable_steady_tick(d);
         pb.set_message(format!("Creating {}", video_cmd.output_video));
-        let _ = video_cmd.cmd.status();
-
-        pb.finish_with_message(format!("Video {} is complete.", video_cmd.output_video));
+        let res = video_cmd.cmd.status();
+        match res {
+            Ok(_) => {
+                pb.finish_with_message(format!("Video {} is complete", video_cmd.output_video));
+            }
+            Err(e) => {
+                pb.set_style(error_sty.clone());
+                pb.finish_with_message(format!(
+                    "Error {} creating {}.",
+                    e.to_string(),
+                    video_cmd.output_video
+                ));
+            }
+        }
     });
     let elapsed = now.elapsed();
     println!("Time taken: {:.2?} and {} videos created.", elapsed, total);

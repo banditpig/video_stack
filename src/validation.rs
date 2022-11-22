@@ -87,7 +87,7 @@ fn command_index_ok(ix: usize, cmd_file: &str) -> Result<(), VideoError> {
     if ix >= line_count {
         Err(VideoError {
             reason: format!(
-                "Command index {} is too large. Should be <= {}",
+                "Command index {} is too large. Should be < {}",
                 ix, line_count
             ),
         })

@@ -87,7 +87,7 @@ fn create_video_commands(
                 vid1.as_str(),
                 vid2.as_str(),
                 outname.as_str(),
-            );
+            )?;
 
             let cmd_name = arg_vec.remove(0); //eg ffmpeg
             let cmd = add_arguments_to_command(Command::new(cmd_name), &arg_vec);

@@ -24,20 +24,34 @@ pub fn update_args_with_substitutions(
     tv: &str,
     bv: &str,
     ov: &str,
-) -> Vec<String> {
-    //TOP_VID, BOTTOM_VID, OUTVID
-
+) -> Result<Vec<String>, VideoError> {
     let mut args_clone = input_vec.clone();
-    let ix = args_clone.iter().position(|s| s == "TOP_VID").unwrap(); //Should handle this error!
+    let ix = args_clone
+        .iter()
+        .position(|s| s == "TOP_VID")
+        .ok_or(VideoError {
+            reason: "Missing 'TOP_VID' placeholder in command".to_string(),
+        })?;
     let _ = std::mem::replace(&mut args_clone[ix], tv.to_string());
 
-    let ix = args_clone.iter().position(|s| s == "BOTTOM_VID").unwrap();
+    let ix = args_clone
+        .iter()
+        .position(|s| s == "BOTTOM_VID")
+        .ok_or(VideoError {
+            reason: "Missing 'BOTTOM_VID' placeholder in command".to_string(),
+        })?;
+
     let _ = std::mem::replace(&mut args_clone[ix], bv.to_string());
 
-    let ix = args_clone.iter().position(|s| s == "OUTVID").unwrap();
+    let ix = args_clone
+        .iter()
+        .position(|s| s == "OUT_VID")
+        .ok_or(VideoError {
+            reason: "Missing 'OUT_VID' placeholder in command".to_string(),
+        })?;
     let _ = std::mem::replace(&mut args_clone[ix], ov.to_string());
 
-    args_clone //Is this OK??? or should I not return a ref and just clone vec?
+    Ok(args_clone)
 }
 pub fn add_arguments_to_command(mut cmd: Command, args: &Vec<String>) -> Command {
     for arg in args {
@@ -104,7 +118,8 @@ mod tests {
     }
     #[test]
     fn update_arguments() {
-        ////TOP_VID, BOTTOM_VID, OUTVID
+        ////TOP_VID, BOTTOM_VID, OUT_VID
+
         let args_vec = vec![
             "-flags".to_string(),
             "2".to_string(),
@@ -112,10 +127,11 @@ mod tests {
             "TOP_VID".to_string(),
             "x".to_string(),
             "BOTTOM_VID".to_string(),
-            "OUTVID".to_string(),
+            "OUT_VID".to_string(),
         ];
 
-        let res = update_args_with_substitutions(&args_vec, "top.mp4", "bottom.mp4", "output.mp4");
+        let res = update_args_with_substitutions(&args_vec, "top.mp4", "bottom.mp4", "output.mp4")
+            .unwrap();
         assert!(res.contains(&"top.mp4".to_string()));
         assert!(res.contains(&"bottom.mp4".to_string()));
         assert!(res.contains(&"output.mp4".to_string()));

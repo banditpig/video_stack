@@ -1,1 +1,4 @@
 ffmpeg -y -hide_banner -report -loglevel error -threads 1 -i TOP_VID -i BOTTOM_VID -filter_complex "[0:v]scale=1080:1920,crop=in_w:in_h/2:in _w:in_h/4[v0];[1:v]scale=1080:1920,crop=in_w:in_h/2:in_w:in_h/4[v1];[v0][v1]vstack" -c:v libx264 OUTVID
+ffmpeg -y -hide_banner -report -loglevel error -threads 1 -i TOP_VID -i BOTTOM_VID -filter_complex "[0:v]scale=1080:1920,crop=in_w:in_h/2:in _w:in_h/4[v0];[1:v]scale=1080:1920,crop=in_w:in_h/2:in_w:in_h/4[v1];[v0][v1]vstack" -c:v libx264 -map 0:a? -shortest -vsync 2 OUTVID
+
+

@@ -4,15 +4,18 @@ mod args;
 extern crate lazy_static;
 mod command_builder;
 mod validation;
+
 use crate::args::Arguments;
 use crate::command_builder::{
     add_arguments_to_command, get_cmd_args, update_args_with_substitutions, VideoCommand,
 };
 use crate::validation::{check_args, folder_exists, video_files_in_folder, COMMANDS_FILE};
 use clap::Parser;
+use flexi_logger::FileSpec;
+use flexi_logger::Logger;
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use lazy_static::lazy_static;
-
+use log::{debug, error, info, warn};
 use rayon::prelude::*;
 use std::fmt::{Display, Formatter};
 use std::process::Command;
@@ -61,6 +64,7 @@ impl error::Error for VideoError {
         &self.reason
     }
 }
+
 fn process_videos(args: &Arguments, vid_cmd_args: &Vec<String>) -> Result<(), VideoError> {
     let all_commands = create_video_commands(args, vid_cmd_args)?;
     run_all_commands(all_commands)
@@ -71,7 +75,7 @@ fn create_video_commands(
     vid_cmd_args: &Vec<String>,
 ) -> Result<Vec<VideoCommand>, VideoError> {
     //
-
+    debug!("Using ffmepg command {:?}", vid_cmd_args);
     let client_vids = video_files_in_folder(&args.client_folder)?; //.unwrap();
     let dummy_vids = video_files_in_folder(&args.dummies_folder)?;
     let mut total = 0;
@@ -120,6 +124,7 @@ fn run_all_commands(all_commands: Vec<VideoCommand>) -> Result<(), VideoError> {
             .progress_chars("***");
 
     all_commands.into_par_iter().for_each(|mut video_cmd| {
+        debug!("Running command {}", video_cmd);
         let pb = m.add(ProgressBar::new(1));
         pb.set_style(sty.clone());
 
@@ -132,6 +137,11 @@ fn run_all_commands(all_commands: Vec<VideoCommand>) -> Result<(), VideoError> {
                 pb.finish_with_message(format!("Video {} is complete", video_cmd.output_video));
             }
             Err(e) => {
+                error!(
+                    "Error {} creating {}.",
+                    e.to_string(),
+                    video_cmd.output_video
+                );
                 pb.set_style(error_sty.clone());
                 pb.finish_with_message(format!(
                     "Error {} creating {}.",
@@ -165,6 +175,16 @@ fn run() -> Result<(), VideoError> {
     Ok(())
 }
 fn main() {
+    Logger::try_with_str("debug")
+        .unwrap()
+        .log_to_file(
+            FileSpec::default()
+                .directory("log_files") // create files in folder ./log_files
+                .basename("video_stack")
+                .suppress_timestamp(),
+        )
+        .start();
+    info!("Logging");
     let res = run();
     match res {
         Ok(_) => {

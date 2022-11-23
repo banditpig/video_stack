@@ -7,3 +7,6 @@ ffmpeg -i vid1.mp4 -i vid1.mp4 -filter_complex "[0:v]scale=640:-1[v0];[v0][1:v]v
 
 ffmpeg -i vid1.mp4 -i vid2.mp4 -filter_complex "[0:v]scale=1080:1920,crop=in_w:in_h/2:in
 _w:in_h/4[v0];[1:v]scale=1080:1920,crop=in_w:in_h/2:in_w:in_h/4[v1];[v0][v1]vstack" -c:v libx264  top_stacked_on_bottom.mp4
+
+original
+ffmpeg -i top_video.mp4 -i bottom_video.mp4 -filter_complex "[0:v]scale="1080:1920",crop=in_w:in_h/2:in_w:in_h/4[v0];[1:v]scale="1080:1920",crop=in_w:in_h/2:in_w:in_h/4[v1];[v0][v1]vstack" -c:v libx264  -map 0:a -shortest -vsync 2 top_stacked_on_bottom.mp4

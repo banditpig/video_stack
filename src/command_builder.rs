@@ -1,7 +1,7 @@
 use crate::VideoError;
+use log::{debug, error, info, warn};
 use std::fmt::{Display, Formatter};
 use std::process::Command;
-
 #[derive(Debug)]
 pub struct VideoCommand {
     pub(crate) cmd: Command,
@@ -77,6 +77,7 @@ pub fn get_cmd_args(cmds_file_name: &str) -> Result<Vec<Vec<String>>, VideoError
                 args.push(r.to_string())
             }
         }
+        debug!("Loaded ffmpeg {:?}", args);
         all_args.push(args)
     }
     match all_args.len() {

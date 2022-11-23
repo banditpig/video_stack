@@ -1,10 +1,11 @@
 #[macro_use]
 mod args;
-
+use license::data::License;
+use license::data::LicenseError;
+use license::data::LicenseError::*;
 extern crate lazy_static;
 mod command_builder;
 mod validation;
-
 use crate::args::Arguments;
 use crate::command_builder::{
     add_arguments_to_command, get_cmd_args, update_args_with_substitutions, VideoCommand,
@@ -15,7 +16,9 @@ use flexi_logger::FileSpec;
 use flexi_logger::Logger;
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use lazy_static::lazy_static;
+
 use log::{debug, error, info, warn};
+use rayon::max_num_threads;
 use rayon::prelude::*;
 use std::fmt::{Display, Formatter};
 use std::process::Command;
@@ -51,6 +54,21 @@ impl From<csv::Error> for VideoError {
         VideoError {
             reason: e.to_string(),
         }
+    }
+}
+impl From<LicenseError> for VideoError {
+    fn from(e: LicenseError) -> VideoError {
+        match e {
+            DateFormat(d) => VideoError { reason: d },
+            JSONIncorrect(d) => VideoError { reason: d },
+            FileError(d) => VideoError { reason: d },
+            SigningProblem(d) => VideoError { reason: d },
+            UserDataError(d) => VideoError { reason: d },
+        }
+
+        // VideoError {
+        //     reason: e.to_string(),
+        // }
     }
 }
 
@@ -157,9 +175,22 @@ fn run_all_commands(all_commands: Vec<VideoCommand>) -> Result<(), VideoError> {
     Ok(())
 }
 
+fn check_licence() -> Result<(), VideoError> {
+    let l: Result<License, LicenseError> = License::from_file("lic2.txt");
+    match l {
+        Ok(lic) => lic.check_license()?,
+        Err(e) => {
+            return Err(VideoError::from(e));
+        }
+    }
+
+    Ok(())
+}
 fn run() -> Result<(), VideoError> {
+    check_licence()?;
+
     let args: Arguments = Arguments::parse();
-    let _ = check_args(&args)?;
+    check_args(&args)?;
     let out_folder = folder_exists(&args.output_folder);
     match out_folder {
         Ok(_) => {}
@@ -183,8 +214,10 @@ fn main() {
                 .basename("video_stack")
                 .suppress_timestamp(),
         )
-        .start();
+        .start()
+        .expect("TODO: panic message");
     info!("Logging");
+
     let res = run();
     match res {
         Ok(_) => {

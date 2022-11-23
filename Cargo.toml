@@ -15,4 +15,5 @@ indicatif = "0.17.2"
 log = "0.4.17"
 flexi_logger = "0.24.1"
 
+license = { version = "^0", path = "../license/" }
 

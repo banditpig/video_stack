@@ -6,7 +6,7 @@ use license::data::LicenseError::*;
 extern crate lazy_static;
 mod command_builder;
 mod validation;
-use crate::args::{Arguments, Configuration};
+use crate::args::{Arguments, Cli, Commands, Configuration};
 use crate::command_builder::{
     add_arguments_to_command, get_cmd_args, update_args_with_substitutions, VideoCommand,
 };
@@ -186,10 +186,27 @@ fn check_licence() -> Result<(), VideoError> {
 }
 fn run() -> Result<(), VideoError> {
     check_licence()?;
+    let cli = Cli::parse();
+    let args: Arguments = match &cli.command {
+        Commands::File { name } => {
+            println!("Reading settings from {}", name);
+            Configuration::new(name)?.args
+        }
+        Commands::Values {
+            client_folder,
+            dummies_folder,
+            output_folder,
+            quantity,
+            index_of_command,
+        } => Arguments {
+            client_folder: client_folder.to_string(),
+            dummies_folder: dummies_folder.to_string(),
+            output_folder: output_folder.to_string(),
+            quantity: *quantity,
+            index_of_command: *index_of_command,
+        },
+    };
 
-    let config = Configuration::new()?;
-
-    let args: Arguments = config.args; //Arguments::parse();
     println!("Using setting:\n{}", args);
     check_args(&args)?;
     let out_folder = folder_exists(&args.output_folder);

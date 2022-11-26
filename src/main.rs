@@ -6,7 +6,7 @@ use license::data::LicenseError::*;
 extern crate lazy_static;
 mod command_builder;
 mod validation;
-use crate::args::Arguments;
+use crate::args::{Arguments, Configuration};
 use crate::command_builder::{
     add_arguments_to_command, get_cmd_args, update_args_with_substitutions, VideoCommand,
 };
@@ -16,9 +16,7 @@ use flexi_logger::FileSpec;
 use flexi_logger::Logger;
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use lazy_static::lazy_static;
-
-use log::{debug, error, info, warn};
-use rayon::max_num_threads;
+use log::{debug, error, info};
 use rayon::prelude::*;
 use std::fmt::{Display, Formatter};
 use std::process::Command;
@@ -27,14 +25,7 @@ use std::{error, fs, io};
 
 lazy_static! {
     pub static ref EXTENSIONS: Vec<&'static str> = {
-        let mut m = Vec::new();
-        m.push("avi");
-        m.push("mkv");
-        m.push("mov");
-        m.push("mp4");
-        m.push("mpg");
-        m.push("mpeg");
-        m.push("wmv");
+        let m = vec!["avi", "mov", "mp4", "mpg", "mpeg", "wmv"];
         m
     };
 }
@@ -42,8 +33,15 @@ lazy_static! {
 pub struct VideoError {
     pub reason: String,
 }
-impl From<std::io::Error> for VideoError {
+impl From<io::Error> for VideoError {
     fn from(e: io::Error) -> VideoError {
+        VideoError {
+            reason: e.to_string(),
+        }
+    }
+}
+impl From<toml::de::Error> for VideoError {
+    fn from(e: toml::de::Error) -> VideoError {
         VideoError {
             reason: e.to_string(),
         }
@@ -189,7 +187,10 @@ fn check_licence() -> Result<(), VideoError> {
 fn run() -> Result<(), VideoError> {
     check_licence()?;
 
-    let args: Arguments = Arguments::parse();
+    let config = Configuration::new()?;
+
+    let args: Arguments = config.args; //Arguments::parse();
+    println!("Using setting:\n{}", args);
     check_args(&args)?;
     let out_folder = folder_exists(&args.output_folder);
     match out_folder {

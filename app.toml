@@ -1,0 +1,20 @@
+[args]
+#The folder containing the client videos.
+#They will be on the top of the stacked video.
+client_folder = "."
+#The folder containing the dummy videos.
+#They will be on the bottom of the stacked video.
+dummies_folder = "."
+#Where to write the new stacked videos. The folder will be created
+#if it doesn't exist.
+output_folder = "."
+
+#If there are say 8 dummy videos then a quantity of 1 new stacked video will
+#be created using just 1 of the dummy videos. This means with 8 dummy videos
+#and 2 client videos a quantity of 1 will create 2 new stacked videos.
+#a quantity of 3 will create 6 new stacked videos. The quantity can never
+#be greater than the number of dummy videos. This guarantees that all new stacked
+#videos will be unique.
+
+quantity = 1
+index_of_command = 0

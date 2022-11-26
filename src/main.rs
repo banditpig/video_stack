@@ -176,7 +176,7 @@ fn run_all_commands(all_commands: Vec<VideoCommand>) -> Result<(), VideoError> {
 }
 
 fn check_licence() -> Result<(), VideoError> {
-    let l: Result<License, LicenseError> = License::from_file("lic2.txt");
+    let l: Result<License, LicenseError> = License::from_file("video_stacker.lic");
     match l {
         Ok(lic) => lic.check_license()?,
         Err(e) => {
@@ -228,9 +228,4 @@ fn main() {
             std::process::exit(1);
         }
     }
-
-    // if let Err(err) = run() {
-    //     eprintln!("Error: {:?}", err);
-    //     std::process::exit(1);
-    // }
 }

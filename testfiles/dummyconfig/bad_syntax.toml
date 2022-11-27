@@ -1,0 +1,7 @@
+[args]
+
+client_folder ! "client"
+dummies_folder = "dummies"
+output_folder = "output"
+quantity = 1
+index_of_command = 0

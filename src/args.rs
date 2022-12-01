@@ -12,12 +12,12 @@ pub struct Cli {
 }
 #[derive(Subcommand, Debug)]
 pub enum Commands {
-    /// does testing things
+    ///File from which to read the various settings. e.g. Client video folder.
     File {
-        /// lists test values
         #[arg(short, long)]
         name: String,
     },
+    ///Command line arguments. An alternative to reading them from a file.
     Values {
         #[clap(short, long)]
         client_folder: String,

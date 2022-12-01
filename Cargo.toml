@@ -18,5 +18,5 @@ toml = "0.5.2"
 serde = "1.0.136"
 serde_derive = "1.0.136"
 claim = "0.5.0"
-license = { version = "^0", path = "../license/" }
+license = { version = "^0", path = "../license" }
 

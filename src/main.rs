@@ -63,10 +63,6 @@ impl From<LicenseError> for VideoError {
             SigningProblem(d) => VideoError { reason: d },
             UserDataError(d) => VideoError { reason: d },
         }
-
-        // VideoError {
-        //     reason: e.to_string(),
-        // }
     }
 }
 
@@ -159,11 +155,7 @@ fn run_all_commands(all_commands: Vec<VideoCommand>) -> Result<(), VideoError> {
                     video_cmd.output_video
                 );
                 pb.set_style(error_sty.clone());
-                pb.finish_with_message(format!(
-                    "Error {} creating {}.",
-                    e.to_string(),
-                    video_cmd.output_video
-                ));
+                pb.finish_with_message(format!("Error {} creating {}.", e, video_cmd.output_video));
             }
         }
     });
@@ -173,25 +165,27 @@ fn run_all_commands(all_commands: Vec<VideoCommand>) -> Result<(), VideoError> {
     Ok(())
 }
 
-fn check_licence() -> Result<(), VideoError> {
+fn check_licence() -> Result<License, VideoError> {
     let l: Result<License, LicenseError> = License::from_file("video_stacker.lic");
     match l {
-        Ok(lic) => lic.check_license()?,
-        Err(e) => {
-            return Err(VideoError::from(e));
+        Ok(lic) => {
+            lic.check_license()?;
+            Ok(lic)
         }
+        Err(e) => Err(VideoError::from(e)),
     }
-
-    Ok(())
 }
 fn run() -> Result<(), VideoError> {
-    check_licence()?;
+    let lic = check_licence()?;
+    //can now check license for features
+
     let cli = Cli::parse();
     let args: Arguments = match &cli.command {
         Commands::File { name } => {
             println!("Reading settings from {}", name);
             Configuration::new(name)?.args
         }
+
         Commands::Values {
             client_folder,
             dummies_folder,
@@ -233,8 +227,7 @@ fn main() {
                 .suppress_timestamp(),
         )
         .start()
-        .expect("TODO: panic message");
-    info!("Logging");
+        .expect("Unable to start logging.");
 
     let res = run();
     match res {
